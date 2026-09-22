@@ -88,7 +88,8 @@ def read_patch(slide: "openslide.OpenSlide", cx: int, cy: int, downsample: float
     region = slide.read_region(top_left_level0, level, (read_size, read_size)).convert("RGB")
     if read_size != PATCH_PX:
         region = region.resize((PATCH_PX, PATCH_PX))
-    return np.asarray(region)
+    return np.array(region)  # copy (not asarray): PIL's buffer isn't writable, but downstream
+    # code (torch.from_numpy in dataset.py) needs a writable array
 
 
 def enumerate_slide_patches(slide_path: Path, min_tissue_fraction: float) -> list[dict]:

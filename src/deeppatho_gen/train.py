@@ -25,6 +25,21 @@ from .dataset import PatchPairDataset, build_patch_index, case_level_split
 from .model.backbone import DeepPATHOClassifier
 
 
+def limit_cpu_threads(n: int = 2) -> None:
+    """Cap PyTorch's intra-op BLAS thread pool.
+
+    Diagnosed on the pilot run: with num_workers=0, this process alone was
+    pegging ~12 CPU cores (per `top`) despite the model being tiny (2M
+    params) -- BLAS was over-threading a CPU-bound *I/O* workload (openslide
+    reads), not compute. That starves everyone else on this shared server
+    without actually making training faster, since the real bottleneck is
+    disk/openslide latency per patch, which extra BLAS threads can't help.
+    The actual fix is more DataLoader *workers* (parallel I/O), each with a
+    small thread budget so per-worker BLAS calls don't themselves oversubscribe.
+    """
+    torch.set_num_threads(n)
+
+
 def get_device() -> torch.device:
     if torch.cuda.is_available():
         return torch.device("cuda")
@@ -68,6 +83,8 @@ def main():
     genes_cfg = yaml.safe_load(Path(args.genes_config).read_text())
     gene_cols = list(genes_cfg["phase1_genes"])
 
+    limit_cpu_threads(cfg["data"].get("torch_threads", 2))
+
     index_df = build_patch_index(
         patch_coords_csv="data/processed/patch_coords.csv",
         labels_csv="data/raw/mutation_labels.csv",
@@ -86,8 +103,19 @@ def main():
     train_ds = PatchPairDataset(index_df[index_df.split == "train"], gene_cols)
     val_ds = PatchPairDataset(index_df[index_df.split == "val"], gene_cols)
 
-    train_loader = DataLoader(train_ds, batch_size=cfg["optim"]["batch_size"], shuffle=True, num_workers=4)
-    val_loader = DataLoader(val_ds, batch_size=cfg["optim"]["batch_size"], shuffle=False, num_workers=4)
+    # PatchPairDataset opens openslide handles lazily inside __getitem__, so
+    # each forked worker process opens its own handles from a cold cache --
+    # safe to parallelize. This is what actually speeds things up: the pilot
+    # run's bottleneck was serial per-patch disk/openslide I/O in the main
+    # process, not GPU compute (see limit_cpu_threads() above).
+    num_workers = cfg["data"].get("num_workers", 4)
+    loader_kwargs = dict(
+        num_workers=num_workers,
+        pin_memory=(device.type == "cuda"),
+        persistent_workers=num_workers > 0,
+    )
+    train_loader = DataLoader(train_ds, batch_size=cfg["optim"]["batch_size"], shuffle=True, **loader_kwargs)
+    val_loader = DataLoader(val_ds, batch_size=cfg["optim"]["batch_size"], shuffle=False, **loader_kwargs)
 
     model = DeepPATHOClassifier(
         num_classes=len(gene_cols),

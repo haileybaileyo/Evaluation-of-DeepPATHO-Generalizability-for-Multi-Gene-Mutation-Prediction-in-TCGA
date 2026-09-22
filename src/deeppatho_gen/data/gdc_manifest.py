@@ -50,6 +50,7 @@ def query_slides(project: str, case_ids: list[str] | None = None, page_size: int
         [
             "file_id",
             "file_name",
+            "file_size",
             "data_type",
             "experimental_strategy",
             "cases.submitter_id",
@@ -89,6 +90,7 @@ def flatten(hits: list[dict]) -> pd.DataFrame:
             {
                 "file_id": h["file_id"],
                 "file_name": h["file_name"],
+                "file_size": h.get("file_size"),
                 "case_id": case["submitter_id"],
                 "gdc_case_uuid": case["case_id"],
                 "experimental_strategy": h.get("experimental_strategy"),

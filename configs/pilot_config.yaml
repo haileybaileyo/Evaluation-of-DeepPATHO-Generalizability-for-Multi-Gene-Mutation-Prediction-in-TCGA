@@ -1,0 +1,36 @@
+# Pilot smoke-test config: tiny (20-slide) subset, just to prove the
+# train.py loop actually works end-to-end on real data + GPU before
+# committing to a full 534-slide run. Not meant to produce a real AUC.
+
+data:
+  index_csv: data/processed/patch_coords.csv
+  patch_size: 256
+  global_mag: 5x
+  local_mag: 20x
+  train_frac: 0.70
+  val_frac: 0.15
+  test_frac: 0.15
+  split_by: case_id
+  num_workers: 4     # shared server (20 cores, other users' jobs running) -- leaving headroom
+  torch_threads: 2
+
+model:
+  backbone: deeppatho_mma
+  num_classes: 6
+  dropout_global: 0.7
+  dropout_local: 0.2
+
+optim:
+  optimizer: adam
+  lr: 1.0e-4          # higher than the paper's 1e-5, since we're only running ~3 epochs on tiny data
+  weight_decay: 0.0
+  batch_size: 16
+  epochs: 3
+  early_stopping_patience: 3
+
+evaluation:
+  bootstrap_iterations: 200
+  aggregation: [mean_probability, percent_positive, max]
+  fdr_targets: [0.05]
+
+output_dir: runs/pilot_smoke_test
