@@ -3,7 +3,7 @@
 # everything else is a reasonable starting point to tune on your validation split.
 
 data:
-  index_csv: data/processed/patch_index.csv   # produced by preprocessing/tile_wsi.py
+  index_csv: data/processed/patch_coords.csv   # produced by preprocessing/tile_wsi.py
   patch_size: 256                              # pixels, both magnifications (Coudray/Kosaraju)
   global_mag: 5x
   local_mag: 20x
@@ -11,6 +11,8 @@ data:
   val_frac: 0.15
   test_frac: 0.15
   split_by: case_id                            # never split a patient's tiles across sets
+  num_workers: 6          # shared server (20 cores) -- leaves headroom for other users' jobs
+  torch_threads: 2        # see train.py's limit_cpu_threads() docstring for why this matters
 
 model:
   backbone: deeppatho_mma        # or: inception_v3_baseline (for a direct 1:1 comparison)

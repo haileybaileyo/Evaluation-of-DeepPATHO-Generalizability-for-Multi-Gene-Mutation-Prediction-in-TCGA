@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import time
 from pathlib import Path
 
 import torch
@@ -102,6 +103,7 @@ def main():
 
     train_ds = PatchPairDataset(index_df[index_df.split == "train"], gene_cols)
     val_ds = PatchPairDataset(index_df[index_df.split == "val"], gene_cols)
+    test_df = index_df[index_df.split == "test"]
 
     # PatchPairDataset opens openslide handles lazily inside __getitem__, so
     # each forked worker process opens its own handles from a cold cache --
@@ -133,12 +135,21 @@ def main():
     patience_left = cfg["optim"]["early_stopping_patience"]
     history = []
 
+    # Hard wall-clock budget: under a deadline, we need *a* result no matter
+    # what epoch we're on, so this takes priority over early-stopping
+    # patience and the configured epoch count. Checked between epochs (not
+    # mid-epoch) so every epoch that starts finishes and gets a checkpoint.
+    max_hours = cfg["optim"].get("max_hours")
+    deadline = time.time() + max_hours * 3600 if max_hours else None
+    t_start = time.time()
+
     for epoch in range(cfg["optim"]["epochs"]):
         train_loss, _, _ = run_epoch(model, train_loader, optimizer, loss_fn, device, train=True)
         val_loss, val_probs, val_labels = run_epoch(model, val_loader, optimizer, loss_fn, device, train=False)
 
-        print(f"epoch {epoch:03d}  train_loss={train_loss:.4f}  val_loss={val_loss:.4f}")
-        history.append({"epoch": epoch, "train_loss": train_loss, "val_loss": val_loss})
+        elapsed_h = (time.time() - t_start) / 3600
+        print(f"epoch {epoch:03d}  train_loss={train_loss:.4f}  val_loss={val_loss:.4f}  elapsed={elapsed_h:.2f}h")
+        history.append({"epoch": epoch, "train_loss": train_loss, "val_loss": val_loss, "elapsed_hours": elapsed_h})
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
@@ -147,11 +158,40 @@ def main():
         else:
             patience_left -= 1
             if patience_left <= 0:
-                print("Early stopping.")
+                print("Early stopping (no val improvement).")
                 break
+
+        torch.save(model.state_dict(), out_dir / "last_model.pt")  # always available even if best_model is stale
+
+        if deadline and time.time() > deadline:
+            print(f"Stopping: hit the {max_hours}h training time budget after epoch {epoch}.")
+            break
 
     (out_dir / "history.json").write_text(json.dumps(history, indent=2))
     print(f"Best val loss: {best_val_loss:.4f}. Model checkpoint: {out_dir / 'best_model.pt'}")
+
+    # Auto-generate test-set predictions from whichever checkpoint is best,
+    # so a downstream `evaluate.py` call always has something to consume --
+    # "training finished" should always mean "a result exists", even if we
+    # got cut short by max_hours rather than converging or early-stopping.
+    if len(test_df) > 0:
+        print(f"Generating test-set patch predictions ({len(test_df)} patches) ...")
+        model.load_state_dict(torch.load(out_dir / "best_model.pt", map_location=device))
+        model.eval()
+        test_ds = PatchPairDataset(test_df, gene_cols)
+        test_loader = DataLoader(test_ds, batch_size=cfg["optim"]["batch_size"], shuffle=False,
+                                  num_workers=num_workers, pin_memory=(device.type == "cuda"))
+        rows = []
+        with torch.no_grad():
+            for local_t, global_t, labels, meta in tqdm(test_loader, desc="test predictions"):
+                probs = torch.sigmoid(model(local_t.to(device), global_t.to(device))).cpu().numpy()
+                for i in range(len(probs)):
+                    row = {"file_id": meta["file_id"][i], "case_id": meta["case_id"][i]}
+                    row.update({g: float(probs[i, j]) for j, g in enumerate(gene_cols)})
+                    rows.append(row)
+        import pandas as pd  # local import: only needed on this path
+        pd.DataFrame(rows).to_csv(out_dir / "test_patch_scores.csv", index=False)
+        print(f"Wrote {out_dir / 'test_patch_scores.csv'} -- feed this to evaluate.py")
 
 
 if __name__ == "__main__":

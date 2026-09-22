@@ -12,12 +12,22 @@ described in Coudray et al. 2018 (non-overlapping 256x256, <=50% background
 discarded) and Kosaraju et al. 2025 (>=20% tissue kept; global and local
 patches share the same center point).
 
+Speed: most of a WSI's area is white background, and reading a full-res
+256x256 region just to check its background fraction is expensive at scale
+(hundreds of thousands of reads per slide-set). So we first build one cheap
+low-resolution tissue mask per slide (a single get_thumbnail() call) and use
+it to skip full-resolution reads for candidate tiles that are clearly
+background, only paying the expensive read_region() for tiles the thumbnail
+says probably contain tissue. Slides are also processed in parallel across
+a process pool (each worker opens its own openslide handle).
+
 Usage:
     python -m deeppatho_gen.preprocessing.tile_wsi \
         --manifest data/raw/gdc_manifest.csv \
         --slide-dir data/raw/svs \
         --out data/processed/patch_coords.csv \
-        --min-tissue-fraction 0.20
+        --min-tissue-fraction 0.20 \
+        --workers 8
 
 Requires: openslide-python + the system libopenslide (`apt install
 openslide-tools` / `brew install openslide`).
@@ -25,6 +35,8 @@ openslide-tools` / `brew install openslide`).
 from __future__ import annotations
 
 import argparse
+import time
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -40,6 +52,7 @@ except ImportError:  # pragma: no cover - only hit on machines without the syste
 PATCH_PX = 256
 LOCAL_MAG = 20.0
 GLOBAL_MAG = 5.0
+THUMBNAIL_MAX_SIDE = 2048
 
 
 @dataclass
@@ -92,19 +105,52 @@ def read_patch(slide: "openslide.OpenSlide", cx: int, cy: int, downsample: float
     # code (torch.from_numpy in dataset.py) needs a writable array
 
 
-def enumerate_slide_patches(slide_path: Path, min_tissue_fraction: float) -> list[dict]:
+class ThumbnailTissueMask:
+    """Cheap low-res tissue/background mask, used to skip expensive
+    full-resolution reads for tiles that are obviously background."""
+
+    def __init__(self, slide: "openslide.OpenSlide", bg_threshold: int = 220):
+        w, h = slide.dimensions
+        scale = THUMBNAIL_MAX_SIDE / max(w, h)
+        thumb_size = (max(1, round(w * scale)), max(1, round(h * scale)))
+        thumb = np.array(slide.get_thumbnail(thumb_size).convert("RGB"))
+        self.is_tissue = ~np.all(thumb >= bg_threshold, axis=-1)
+        self.scale_x = w / thumb.shape[1]
+        self.scale_y = h / thumb.shape[0]
+
+    def coarse_tissue_fraction(self, cx: int, cy: int, extent_level0: int) -> float:
+        x0 = max(0, int((cx - extent_level0 / 2) / self.scale_x))
+        x1 = min(self.is_tissue.shape[1], int((cx + extent_level0 / 2) / self.scale_x))
+        y0 = max(0, int((cy - extent_level0 / 2) / self.scale_y))
+        y1 = min(self.is_tissue.shape[0], int((cy + extent_level0 / 2) / self.scale_y))
+        if x1 <= x0 or y1 <= y0:
+            return 0.0
+        return float(self.is_tissue[y0:y1, x0:x1].mean())
+
+
+def enumerate_slide_patches(
+    slide_path: Path, min_tissue_fraction: float, max_patches: int | None = None, seed: int = 0
+) -> list[dict]:
     slide = openslide.OpenSlide(str(slide_path))
     geom = SlideGeometry.from_slide(slide)
     width, height = slide.dimensions
 
     step = geom.local_step_level0()
     global_extent = geom.global_extent_level0()
-    # Keep enough margin that the (larger) global patch never runs off the slide.
-    margin = global_extent // 2
+    margin = global_extent // 2  # keep the (larger) global patch on-slide
+
+    mask = ThumbnailTissueMask(slide)
+    # Coarse pre-filter threshold is deliberately looser than the real
+    # threshold (thumbnail is low-res and can under/over-estimate tissue at
+    # tile boundaries) -- it only needs to rule out tiles that are
+    # confidently all-background, not make the final accept/reject call.
+    coarse_threshold = max(0.0, min_tissue_fraction - 0.15)
 
     records = []
     for cy in range(margin, height - margin, step):
         for cx in range(margin, width - margin, step):
+            if mask.coarse_tissue_fraction(cx, cy, step) < coarse_threshold:
+                continue
             local_patch = read_patch(slide, cx, cy, geom.local_downsample)
             frac = tissue_fraction(local_patch)
             if frac < min_tissue_fraction:
@@ -118,7 +164,31 @@ def enumerate_slide_patches(slide_path: Path, min_tissue_fraction: float) -> lis
                 }
             )
     slide.close()
+
+    if max_patches is not None and len(records) > max_patches:
+        # Cap per-slide patch count so no single (usually larger) slide
+        # dominates an epoch, and so total dataset size / epoch time stays
+        # tractable at full (534-slide) scale. Coudray et al.'s TCGA-LUAD
+        # tiling averaged ~600 tiles/slide across the whole cohort (987,931
+        # tiles / 1634 slides); we cap similarly rather than keep every tile
+        # from slides with thousands of tissue-covered tiles.
+        rng = np.random.default_rng(seed)
+        keep_idx = rng.choice(len(records), size=max_patches, replace=False)
+        records = [records[i] for i in sorted(keep_idx)]
+
     return records
+
+
+def _tile_one(args) -> tuple[str, str, list[dict], str | None]:
+    file_id, case_id, slide_path, min_tissue_fraction, max_patches = args
+    try:
+        recs = enumerate_slide_patches(Path(slide_path), min_tissue_fraction, max_patches)
+        for r in recs:
+            r["file_id"] = file_id
+            r["case_id"] = case_id
+        return file_id, case_id, recs, None
+    except Exception as e:  # noqa: BLE001 -- report and move on, don't kill the whole pool
+        return file_id, case_id, [], str(e)
 
 
 def main():
@@ -129,6 +199,17 @@ def main():
                           "as produced by gdc-client")
     ap.add_argument("--out", default="data/processed/patch_coords.csv")
     ap.add_argument("--min-tissue-fraction", type=float, default=0.20)
+    ap.add_argument("--max-patches-per-slide", type=int, default=None,
+                     help="randomly subsample down to this many tissue patches per slide "
+                          "(keeps epoch time bounded at full-cohort scale)")
+    ap.add_argument("--resume", action="store_true",
+                     help="skip slides whose file_id is already in --out (append new slides' "
+                          "patches instead of recomputing everything from scratch)")
+    ap.add_argument("--workers", type=int, default=8, help="slides tiled in parallel")
+    ap.add_argument("--time-budget-hours", type=float, default=None,
+                     help="stop submitting new slides once this much wall-clock time has "
+                          "elapsed (in-flight slides still finish); guarantees the stage "
+                          "terminates within a deadline instead of processing all slides")
     args = ap.parse_args()
 
     if openslide is None:
@@ -140,24 +221,78 @@ def main():
 
     manifest = pd.read_csv(args.manifest)
     slide_dir = Path(args.slide_dir)
+    out_path = Path(args.out)
 
-    all_records = []
-    for _, row in tqdm(manifest.iterrows(), total=len(manifest), desc="slides"):
+    already_done: set[str] = set()
+    existing_df = None
+    if args.resume and out_path.exists():
+        existing_df = pd.read_csv(out_path)
+        already_done = set(existing_df["file_id"].unique())
+        print(f"Resuming: {len(already_done)} slides already tiled in {out_path}", flush=True)
+
+    jobs = []
+    n_skipped_missing = 0
+    for _, row in manifest.iterrows():
+        if row["file_id"] in already_done:
+            continue
         slide_path = slide_dir / row["file_id"] / row["file_name"]
         if not slide_path.exists():
-            tqdm.write(f"MISSING (not downloaded yet): {slide_path}")
+            n_skipped_missing += 1
             continue
-        recs = enumerate_slide_patches(slide_path, args.min_tissue_fraction)
-        for r in recs:
-            r["file_id"] = row["file_id"]
-            r["case_id"] = row["case_id"]
-        all_records.extend(recs)
+        jobs.append((row["file_id"], row["case_id"], str(slide_path), args.min_tissue_fraction, args.max_patches_per_slide))
 
-    df = pd.DataFrame(all_records)
-    out_path = Path(args.out)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(out_path, index=False)
-    print(f"Wrote {len(df)} patch coordinates from {df['file_id'].nunique() if len(df) else 0} slides to {out_path}")
+    print(f"{len(jobs)} slides to tile ({n_skipped_missing} not yet downloaded, "
+          f"{len(already_done)} already done), {args.workers} parallel workers", flush=True)
+
+    t0 = time.time()
+    deadline = t0 + args.time_budget_hours * 3600 if args.time_budget_hours else None
+    n_done, n_failed, n_timed_out = 0, 0, 0
+
+    with ProcessPoolExecutor(max_workers=args.workers) as pool:
+        futures = {}
+        job_iter = iter(jobs)
+
+        def submit_more():
+            nonlocal n_timed_out
+            while len(futures) < args.workers * 2:
+                if deadline and time.time() > deadline:
+                    n_timed_out = len(jobs) - n_done - n_failed - len(futures)
+                    return False
+                try:
+                    job = next(job_iter)
+                except StopIteration:
+                    return False
+                futures[pool.submit(_tile_one, job)] = job[0]
+            return True
+
+        submit_more()
+        pbar = tqdm(total=len(jobs), desc="slides")
+        while futures:
+            done_future = next(as_completed(futures))
+            file_id, case_id, recs, err = done_future.result()
+            del futures[done_future]
+
+            if err:
+                n_failed += 1
+                tqdm.write(f"FAILED {file_id}: {err}")
+            else:
+                n_done += 1
+                if recs:
+                    partial_df = pd.DataFrame(recs)
+                    existing_df = pd.concat([existing_df, partial_df]) if existing_df is not None else partial_df
+                    out_path.parent.mkdir(parents=True, exist_ok=True)
+                    existing_df.to_csv(out_path, index=False)
+            pbar.update(1)
+
+            if not (deadline and time.time() > deadline):
+                submit_more()
+        pbar.close()
+
+    final_n = len(existing_df) if existing_df is not None else 0
+    final_slides = existing_df["file_id"].nunique() if existing_df is not None else 0
+    elapsed_min = (time.time() - t0) / 60
+    print(f"\nWrote {final_n} patch coordinates from {final_slides} slides to {out_path} in {elapsed_min:.1f}min", flush=True)
+    print(f"Done={n_done} Failed={n_failed} SkippedByDeadline={n_timed_out} NotYetDownloaded={n_skipped_missing}", flush=True)
 
 
 if __name__ == "__main__":
