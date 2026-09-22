@@ -134,6 +134,25 @@ def main():
     best_val_loss = float("inf")
     patience_left = cfg["optim"]["early_stopping_patience"]
     history = []
+    start_epoch = 0
+
+    # Resume support: if a crash/kill/OOM interrupted a previous run in this
+    # same output_dir, a watchdog can just re-invoke this script and it
+    # picks back up from the last completed epoch instead of losing all
+    # progress and starting a fresh random model.
+    resume_path = out_dir / "resume_checkpoint.pt"
+    if resume_path.exists():
+        ckpt = torch.load(resume_path, map_location=device)
+        model.load_state_dict(ckpt["model_state"])
+        optimizer.load_state_dict(ckpt["optimizer_state"])
+        best_val_loss = ckpt["best_val_loss"]
+        patience_left = ckpt["patience_left"]
+        start_epoch = ckpt["epoch"] + 1
+        history_path = out_dir / "history.json"
+        if history_path.exists():
+            history = json.loads(history_path.read_text())
+        print(f"Resumed from {resume_path}: starting at epoch {start_epoch}, "
+              f"best_val_loss={best_val_loss:.4f}, patience_left={patience_left}")
 
     # Hard wall-clock budget: under a deadline, we need *a* result no matter
     # what epoch we're on, so this takes priority over early-stopping
@@ -143,13 +162,14 @@ def main():
     deadline = time.time() + max_hours * 3600 if max_hours else None
     t_start = time.time()
 
-    for epoch in range(cfg["optim"]["epochs"]):
+    for epoch in range(start_epoch, cfg["optim"]["epochs"]):
         train_loss, _, _ = run_epoch(model, train_loader, optimizer, loss_fn, device, train=True)
         val_loss, val_probs, val_labels = run_epoch(model, val_loader, optimizer, loss_fn, device, train=False)
 
         elapsed_h = (time.time() - t_start) / 3600
         print(f"epoch {epoch:03d}  train_loss={train_loss:.4f}  val_loss={val_loss:.4f}  elapsed={elapsed_h:.2f}h")
         history.append({"epoch": epoch, "train_loss": train_loss, "val_loss": val_loss, "elapsed_hours": elapsed_h})
+        (out_dir / "history.json").write_text(json.dumps(history, indent=2))
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
@@ -162,13 +182,21 @@ def main():
                 break
 
         torch.save(model.state_dict(), out_dir / "last_model.pt")  # always available even if best_model is stale
+        torch.save({
+            "model_state": model.state_dict(),
+            "optimizer_state": optimizer.state_dict(),
+            "epoch": epoch,
+            "best_val_loss": best_val_loss,
+            "patience_left": patience_left,
+        }, out_dir / "resume_checkpoint.pt")
 
         if deadline and time.time() > deadline:
             print(f"Stopping: hit the {max_hours}h training time budget after epoch {epoch}.")
             break
 
-    (out_dir / "history.json").write_text(json.dumps(history, indent=2))
     print(f"Best val loss: {best_val_loss:.4f}. Model checkpoint: {out_dir / 'best_model.pt'}")
+    if resume_path.exists() and epoch >= cfg["optim"]["epochs"] - 1:
+        resume_path.unlink()  # naturally finished all epochs; no need to resume further
 
     # Auto-generate test-set predictions from whichever checkpoint is best,
     # so a downstream `evaluate.py` call always has something to consume --
