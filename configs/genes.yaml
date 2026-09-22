@@ -1,0 +1,32 @@
+# Target genes for the mutation-prediction extension experiment.
+#
+# Phase 1 genes were chosen to match Coudray et al. 2018 (Nat Med) Table 1,
+# so the new DeepPATHO backbone can be benchmarked directly against the
+# Inception v3 AUCs already published for TCGA-LUAD:
+#   STK11 0.856, EGFR 0.826, SETBP1 0.775, TP53 0.760, FAT1 0.750, KRAS 0.733
+# (per-slide AUC, average-probability aggregation).
+#
+# Phase 2 adds ALK as a sanity check: Kosaraju et al. 2025 (DeepPATHO) report
+# it is learnable with the attention backbone, whereas Coudray et al. reported
+# it as NOT predictable with plain Inception v3. If our re-implementation is
+# faithful, ALK should be learnable and the phase-1 genes should track the
+# published AUCs (within CI, given far fewer positive slides).
+
+study_id: luad_tcga_pan_can_atlas_2018   # cBioPortal study (TCGA-LUAD, PanCancer Atlas)
+gdc_project: TCGA-LUAD
+
+phase1_genes:
+  - STK11
+  - EGFR
+  - FAT1
+  - SETBP1
+  - KRAS
+  - TP53
+
+phase2_genes:
+  - ALK
+
+# Minimum fraction of cases that must carry the mutation for a gene to be
+# included in training (Coudray et al. used a 10% cutoff; ALK is a known,
+# deliberate exception below that cutoff and is handled separately).
+min_mutation_frequency: 0.10

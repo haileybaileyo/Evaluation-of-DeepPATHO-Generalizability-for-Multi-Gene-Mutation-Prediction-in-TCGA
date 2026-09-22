@@ -1,0 +1,37 @@
+# Training hyperparameters.
+# Defaults follow what's reported in the two source papers where available;
+# everything else is a reasonable starting point to tune on your validation split.
+
+data:
+  index_csv: data/processed/patch_index.csv   # produced by preprocessing/tile_wsi.py
+  patch_size: 256                              # pixels, both magnifications (Coudray/Kosaraju)
+  global_mag: 5x
+  local_mag: 20x
+  train_frac: 0.70                             # Coudray et al. slide-level split
+  val_frac: 0.15
+  test_frac: 0.15
+  split_by: case_id                            # never split a patient's tiles across sets
+
+model:
+  backbone: deeppatho_mma        # or: inception_v3_baseline (for a direct 1:1 comparison)
+  num_classes: 6                  # len(phase1_genes); sigmoid multi-label head
+  dropout_global: 0.7              # Kosaraju et al. use a heavier dropout on the 5x branch
+  dropout_local: 0.2
+
+optim:
+  optimizer: adam
+  lr: 1.0e-5              # DeepPATHO paper's reported optimum
+  weight_decay: 0.85       # "regularization lambda" as reported (verify empirically -- this
+                            # is unusually large for standard L2 and may mean something
+                            # architecture-specific in the source paper; treat as a starting
+                            # point, not gospel)
+  batch_size: 32
+  epochs: 60
+  early_stopping_patience: 8
+
+evaluation:
+  bootstrap_iterations: 1000     # Coudray et al.'s CI method
+  aggregation: [mean_probability, percent_positive, max]
+  fdr_targets: [0.05, 0.01]       # Kosaraju et al.'s thresholding approach
+
+output_dir: runs/phase1_gene_mutation
