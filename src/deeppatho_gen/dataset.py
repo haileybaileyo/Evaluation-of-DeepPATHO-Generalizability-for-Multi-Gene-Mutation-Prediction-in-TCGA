@@ -9,6 +9,7 @@ the same tumor sample" requirement, generalized to case-level).
 """
 from __future__ import annotations
 
+from collections import OrderedDict
 from pathlib import Path
 
 import numpy as np
@@ -77,18 +78,38 @@ class PatchPairDataset(Dataset):
         self.df = index_df.reset_index(drop=True)
         self.gene_cols = gene_cols
         self.augment = augment
-        self._slide_cache: dict[str, "openslide.OpenSlide"] = {}
+        # LRU-bounded, NOT an unbounded cache: this dataset's index typically
+        # spans hundreds of distinct slides (532 tumor + 244 normal for the
+        # tumor classifier), and each worker process (persistent_workers,
+        # shuffled) ends up lazily touching most of them over an epoch. An
+        # unbounded cache of OpenSlide handles leaked memory until the OOM
+        # killer took out DataLoader workers mid-run -- confirmed via
+        # `dmesg`-style "DataLoader worker ... killed by signal: Killed" and
+        # `free` showing 122/125GB used. Bounding this to a small number of
+        # concurrently-open slides per worker fixes it; re-opening a slide
+        # that was evicted is cheap relative to actually reading a region.
+        self._slide_cache: "OrderedDict[str, openslide.OpenSlide]" = OrderedDict()
         self._geom_cache: dict[str, SlideGeometry] = {}
+        self._max_open_slides = 16
 
     def __len__(self) -> int:
         return len(self.df)
 
     def _get_slide(self, slide_path: str):
-        if slide_path not in self._slide_cache:
-            slide = openslide.OpenSlide(slide_path)
-            self._slide_cache[slide_path] = slide
-            self._geom_cache[slide_path] = SlideGeometry.from_slide(slide)
-        return self._slide_cache[slide_path], self._geom_cache[slide_path]
+        if slide_path in self._slide_cache:
+            self._slide_cache.move_to_end(slide_path)  # mark as most-recently-used
+            return self._slide_cache[slide_path], self._geom_cache[slide_path]
+
+        slide = openslide.OpenSlide(slide_path)
+        self._slide_cache[slide_path] = slide
+        self._geom_cache[slide_path] = SlideGeometry.from_slide(slide)
+
+        if len(self._slide_cache) > self._max_open_slides:
+            oldest_path, oldest_slide = self._slide_cache.popitem(last=False)
+            oldest_slide.close()
+            del self._geom_cache[oldest_path]
+
+        return slide, self._geom_cache[slide_path]
 
     def __getitem__(self, idx: int):
         row = self.df.iloc[idx]
