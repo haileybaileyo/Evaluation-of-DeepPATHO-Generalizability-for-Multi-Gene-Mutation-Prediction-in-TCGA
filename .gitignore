@@ -6,3 +6,4 @@ __pycache__/
 *.pyc
 .venv/
 configs/train_config_runtime.yaml
+configs/tumor_classifier_config_runtime.yaml
