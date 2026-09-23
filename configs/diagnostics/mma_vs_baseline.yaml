@@ -1,0 +1,27 @@
+# E: MMA vs single-magnification baseline, under IDENTICAL conditions to D
+# (same split_seed, same gene, same tumor-filtered patches, same patch cap,
+# same optimizer/lr/epochs/patience, same seed). Only the model differs.
+
+gene: TP53
+patch_coords: data/processed/patch_coords_tumor_only.csv
+labels: data/raw/mutation_labels.csv
+
+train_frac: 0.70
+val_frac: 0.15
+split_seed: 42          # same as fixed_validation.yaml -- same patients in each split
+
+augment: true
+max_patches_per_slide: 60   # same as fixed_validation.yaml, for a fair apples-to-apples comparison
+
+batch_size: 32
+lr: 1.0e-4
+weight_decay: 0.0
+max_epochs: 20
+early_stopping_patience: 6
+checkpoint_selection_metric: val_loss
+
+num_workers: 4
+torch_threads: 2
+seed: 20240923          # same seed as fixed_validation.yaml
+
+output_dir: runs/diagnostics/mma_vs_baseline_tp53
