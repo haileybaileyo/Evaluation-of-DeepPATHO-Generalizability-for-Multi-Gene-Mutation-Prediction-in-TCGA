@@ -22,7 +22,9 @@ model:
 
 optim:
   optimizer: adam
-  lr: 1.0e-5              # DeepPATHO paper's reported optimum
+  lr: 1.0e-4              # bumped 10x from the paper's reported 1e-5: first full run's best
+                          # epoch was epoch 0 (val_loss never improved after), i.e. the model
+                          # barely moved off random init in the time available -- LR was too low
   weight_decay: 0.85       # "regularization lambda" as reported (verify empirically -- this
                             # is unusually large for standard L2 and may mean something
                             # architecture-specific in the source paper; treat as a starting

@@ -59,12 +59,24 @@ def build_patch_index(patch_coords_csv: str, labels_csv: str) -> pd.DataFrame:
 
 
 class PatchPairDataset(Dataset):
-    def __init__(self, index_df: pd.DataFrame, gene_cols: list[str], transform=None):
+    def __init__(self, index_df: pd.DataFrame, gene_cols: list[str], augment: bool = False):
+        """augment: random horizontal/vertical flips, applied IDENTICALLY to
+        the local and global patch of a sample (not independently -- they
+        must stay spatially consistent, since the MMA module assumes a
+        shared center point and orientation between the two magnifications).
+
+        This directly addresses a confirmed gap vs. both source papers: the
+        official (if broken) DeepPATHO repo's DataGenetors.py shows they
+        used `horizontal_flip=True`; our first two training attempts had
+        zero augmentation and overfit immediately (train loss dropping
+        smoothly while val loss diverged from epoch 0 on), consistent with
+        a model that could just memorize exact patches.
+        """
         if openslide is None:
             raise RuntimeError("openslide-python is required to read patches from .svs files")
         self.df = index_df.reset_index(drop=True)
         self.gene_cols = gene_cols
-        self.transform = transform
+        self.augment = augment
         self._slide_cache: dict[str, "openslide.OpenSlide"] = {}
         self._geom_cache: dict[str, SlideGeometry] = {}
 
@@ -89,9 +101,13 @@ class PatchPairDataset(Dataset):
         local_t = torch.from_numpy(local_patch).permute(2, 0, 1).float() / 255.0
         global_t = torch.from_numpy(global_patch).permute(2, 0, 1).float() / 255.0
 
-        if self.transform is not None:
-            local_t = self.transform(local_t)
-            global_t = self.transform(global_t)
+        if self.augment:
+            if np.random.rand() < 0.5:
+                local_t = local_t.flip(-1)
+                global_t = global_t.flip(-1)
+            if np.random.rand() < 0.5:
+                local_t = local_t.flip(-2)
+                global_t = global_t.flip(-2)
 
         label = torch.tensor(row[self.gene_cols].values.astype(np.float32))
         meta = {"file_id": row["file_id"], "case_id": row["case_id"]}

@@ -87,7 +87,7 @@ def main():
     limit_cpu_threads(cfg["data"].get("torch_threads", 2))
 
     index_df = build_patch_index(
-        patch_coords_csv="data/processed/patch_coords.csv",
+        patch_coords_csv=cfg["data"]["index_csv"],
         labels_csv="data/raw/mutation_labels.csv",
     )
 
@@ -101,8 +101,8 @@ def main():
     device = get_device()
     print(f"Using device: {device}")
 
-    train_ds = PatchPairDataset(index_df[index_df.split == "train"], gene_cols)
-    val_ds = PatchPairDataset(index_df[index_df.split == "val"], gene_cols)
+    train_ds = PatchPairDataset(index_df[index_df.split == "train"], gene_cols, augment=True)
+    val_ds = PatchPairDataset(index_df[index_df.split == "val"], gene_cols, augment=False)
     test_df = index_df[index_df.split == "test"]
 
     # PatchPairDataset opens openslide handles lazily inside __getitem__, so

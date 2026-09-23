@@ -1,0 +1,26 @@
+# Binary tumor-vs-normal patch classifier, trained first so its predictions
+# can filter the mutation-training patches down to tumor-only tiles
+# (matching what both source papers actually do before mutation prediction).
+
+data:
+  tumor_coords_csv: data/processed/patch_coords.csv           # existing 532 LUAD diagnostic (tumor) slides
+  normal_coords_csv: data/processed/patch_coords_normal.csv   # 244 solid-tissue-normal slides
+  train_frac: 0.80
+  val_frac: 0.20
+  num_workers: 6
+  torch_threads: 2
+
+model:
+  dropout_global: 0.7
+  dropout_local: 0.2
+
+optim:
+  optimizer: adam
+  lr: 1.0e-4
+  batch_size: 32
+  epochs: 20               # this task is much easier than mutation prediction (paper: ~0.99 AUC),
+                            # should converge and early-stop well before this
+  early_stopping_patience: 4
+  max_hours: 3.0            # generous cap; expect to finish much faster
+
+output_dir: runs/tumor_classifier
