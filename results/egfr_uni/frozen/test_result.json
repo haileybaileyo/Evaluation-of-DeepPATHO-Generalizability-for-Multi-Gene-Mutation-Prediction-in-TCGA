@@ -1,0 +1,97 @@
+{
+  "config": {
+    "gene": "EGFR",
+    "patch_coords": "data/processed/patch_coords_tumor_only.csv",
+    "labels": "data/raw/mutation_labels.csv",
+    "train_frac": 0.7,
+    "val_frac": 0.15,
+    "split_seed": 42,
+    "model": {
+      "backbone": "uni_vit_l16",
+      "freeze_backbone": true,
+      "num_classes": 1
+    },
+    "augment": true,
+    "max_patches_per_slide": 300,
+    "batch_size": 32,
+    "lr": 0.0001,
+    "weight_decay": 0.0001,
+    "max_epochs": 40,
+    "early_stopping_patience": 8,
+    "num_workers": 4,
+    "torch_threads": 2,
+    "seed": 20240924,
+    "output_dir": "runs/egfr_uni/frozen"
+  },
+  "seed": 20240924,
+  "split_seed": 42,
+  "model": "UNIDeepPATHOClassifier (freeze_backbone=True)",
+  "n_epochs_run": 9,
+  "best_val_loss": 0.5953444731806503,
+  "split_summary": [
+    {
+      "split": "train",
+      "n_patients": 329,
+      "n_positive": 42,
+      "n_negative": 287,
+      "positive_ratio": 0.1277,
+      "n_patches": 110378
+    },
+    {
+      "split": "val",
+      "n_patients": 71,
+      "n_positive": 9,
+      "n_negative": 62,
+      "positive_ratio": 0.1268,
+      "n_patches": 22451
+    },
+    {
+      "split": "test",
+      "n_patients": 71,
+      "n_positive": 9,
+      "n_negative": 62,
+      "positive_ratio": 0.1268,
+      "n_patches": 25800
+    }
+  ],
+  "test_patch_metrics": {
+    "n": 25800,
+    "n_positive": 3300,
+    "precision": 0.18240343347639484,
+    "recall": 0.07727272727272727,
+    "f1": 0.10855683269476372,
+    "roc_auc": 0.58759767003367,
+    "pr_auc": 0.1590347402182646,
+    "confusion_matrix": [
+      [
+        21357,
+        1143
+      ],
+      [
+        3045,
+        255
+      ]
+    ],
+    "threshold": 0.5
+  },
+  "test_slide_metrics": {
+    "n_positive": 11,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "roc_auc": 0.6145454545454545,
+    "pr_auc": 0.20852024316733522,
+    "confusion_matrix": [
+      [
+        75,
+        0
+      ],
+      [
+        11,
+        0
+      ]
+    ],
+    "threshold": 0.5,
+    "n_slides": 86
+  }
+}

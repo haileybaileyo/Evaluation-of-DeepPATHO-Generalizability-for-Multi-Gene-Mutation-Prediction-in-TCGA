@@ -1,0 +1,40 @@
+proteinChange,mutationType,category,rationale,records
+E709_T710delinsD,In_Frame_Del,activating,E709X (exon 18),3
+L861Q,Missense_Mutation,activating,L861Q (exon 21),3
+G719A,Missense_Mutation,activating,G719X (exon 18),2
+S768I,Missense_Mutation,activating,S768I (exon 20),2
+A767_V769dup,In_Frame_Ins,activating,exon-20 insertion/duplication,1
+D770_N771insGL,In_Frame_Ins,activating,exon-20 insertion/duplication,1
+G719C,Missense_Mutation,activating,G719X (exon 18),1
+H773dup,In_Frame_Ins,activating,exon-20 insertion/duplication,1
+L833F,Missense_Mutation,activating,L833X,1
+L833V,Missense_Mutation,activating,L833X,1
+L858R,Missense_Mutation,classic,L858R (exon 21),23
+E746_A750del,In_Frame_Del,classic,exon-19 in-frame deletion/delins,16
+L747_A750delinsP,In_Frame_Del,classic,exon-19 in-frame deletion/delins,2
+L747_T751del,In_Frame_Del,classic,exon-19 in-frame deletion/delins,2
+K754_I759del,In_Frame_Del,classic,exon-19 in-frame deletion/delins,1
+L747_E749del,In_Frame_Del,classic,exon-19 in-frame deletion/delins,1
+T751_I759delinsN,In_Frame_Del,classic,exon-19 in-frame deletion/delins,1
+L62R,Missense_Mutation,other,not a recognised activating hot spot (passenger/unclear),2
+T790M,Missense_Mutation,other,not a recognised activating hot spot (passenger/unclear),2
+D1083Efs*11,Frame_Shift_Del,other,not a recognised activating hot spot (passenger/unclear),1
+E545Q,Missense_Mutation,other,not a recognised activating hot spot (passenger/unclear),1
+E866K,Missense_Mutation,other,not a recognised activating hot spot (passenger/unclear),1
+G627*,Nonsense_Mutation,other,not a recognised activating hot spot (passenger/unclear),1
+G721V,Missense_Mutation,other,not a recognised activating hot spot (passenger/unclear),1
+G901V,Missense_Mutation,other,not a recognised activating hot spot (passenger/unclear),1
+I759N,Missense_Mutation,other,not a recognised activating hot spot (passenger/unclear),1
+I91V,Missense_Mutation,other,not a recognised activating hot spot (passenger/unclear),1
+K754E,Missense_Mutation,other,not a recognised activating hot spot (passenger/unclear),1
+K754I,Missense_Mutation,other,not a recognised activating hot spot (passenger/unclear),1
+L387M,Missense_Mutation,other,not a recognised activating hot spot (passenger/unclear),1
+L907M,Missense_Mutation,other,not a recognised activating hot spot (passenger/unclear),1
+Q432H,Missense_Mutation,other,not a recognised activating hot spot (passenger/unclear),1
+Q486*,Nonsense_Mutation,other,not a recognised activating hot spot (passenger/unclear),1
+R1052I,Missense_Mutation,other,not a recognised activating hot spot (passenger/unclear),1
+R222L,Missense_Mutation,other,not a recognised activating hot spot (passenger/unclear),1
+R377S,Missense_Mutation,other,not a recognised activating hot spot (passenger/unclear),1
+S921R,Missense_Mutation,other,not a recognised activating hot spot (passenger/unclear),1
+V300M,Missense_Mutation,other,not a recognised activating hot spot (passenger/unclear),1
+X210_splice,Splice_Region,other,not a recognised activating hot spot (passenger/unclear),1

@@ -1,0 +1,13 @@
+{
+  "gene": "TP53",
+  "seed": 42,
+  "train_frac": 0.7,
+  "val_frac": 0.15,
+  "git_commit": "d96bc1a862cf4f139bdcefbeb904afa88ebfe347",
+  "patch_coords_file": "data/processed/patch_coords_tumor_only.csv",
+  "labels_file": "data/raw/mutation_labels.csv",
+  "n_total_patients": 566,
+  "n_total_slides": 534,
+  "n_total_label_conflicts": 0,
+  "patient_leakage_detected": false
+}

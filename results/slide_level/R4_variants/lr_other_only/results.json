@@ -1,0 +1,65 @@
+{
+  "config": {
+    "pooled": "data/processed/uni_v2_luad_slide_pooled.npz",
+    "labels": "data/raw/egfr_variants/other_only.csv",
+    "genes": [
+      "EGFR"
+    ],
+    "pool": "mean",
+    "n_splits": 5,
+    "n_repeats": 10,
+    "n_perm": 10,
+    "perm_genes": [
+      "EGFR"
+    ],
+    "seed": 42,
+    "n_jobs": 6,
+    "out_dir": "runs/slide_level/R4_variants/lr_other_only"
+  },
+  "n_patients": 414,
+  "genes": {
+    "EGFR": {
+      "n_patients": 414,
+      "n_positive": 10,
+      "auc_mean": 0.5852475247524752,
+      "auc_std_over_repeats": 0.0492942546034337,
+      "auc_bootstrap_ci95": [
+        0.3561989379084967,
+        0.7109661322484598
+      ],
+      "pr_auc_mean": 0.04107259532915222,
+      "pr_auc_baseline": 0.024154589371980676,
+      "auc_per_repeat": [
+        0.5064356435643564,
+        0.6579207920792078,
+        0.626980198019802,
+        0.571039603960396,
+        0.5834158415841584,
+        0.6,
+        0.6316831683168317,
+        0.6193069306930693,
+        0.5086633663366337,
+        0.5470297029702971
+      ],
+      "coudray_slide_auc_reference": 0.826
+    }
+  },
+  "permutation_control": {
+    "EGFR": {
+      "auc_mean": 0.518069306930693,
+      "auc_std": 0.10095417726505426,
+      "aucs": [
+        0.38564356435643565,
+        0.7076732673267327,
+        0.5982673267326732,
+        0.5747524752475248,
+        0.5383663366336633,
+        0.5111386138613861,
+        0.42846534653465346,
+        0.3636138613861386,
+        0.5900990099009901,
+        0.48267326732673266
+      ]
+    }
+  }
+}

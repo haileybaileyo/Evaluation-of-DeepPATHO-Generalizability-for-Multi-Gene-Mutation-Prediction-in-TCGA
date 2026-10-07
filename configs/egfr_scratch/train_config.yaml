@@ -1,0 +1,39 @@
+# EGFR, exactly the ALK-paper procedure: from-scratch twin-Inception + MMA
+# (DeepPATHOClassifier), NOT the Phikon-v2 frozen-backbone substitute used in
+# the egfr_roadmap run. Same data split shape (8:1:1) and same tumor-filtered
+# patch set as that run, so the two are directly comparable side by side --
+# the only thing that changes is the backbone (from-scratch vs frozen
+# pretrained), answering "is MMA itself an ALK-only trick, or does the same
+# from-scratch procedure the paper used for ALK generalize to EGFR?"
+#
+# lr/weight_decay taken from diagnostics/fixed_validation.yaml (D experiment),
+# the one from-scratch single-gene config that trained stably (no NaN/divergence)
+# on real patient-level data -- NOT the original multi-gene attempt's lr=1e-4/
+# weight_decay=0.85, which was diagnosed as part of the original divergence.
+
+gene: EGFR
+patch_coords: data/processed/patch_coords_tumor_only.csv
+labels: data/raw/mutation_labels.csv
+
+train_frac: 0.80    # 8:1:1, same as egfr_roadmap -- direct comparability
+val_frac: 0.10
+split_seed: 42       # same seed -- identical train/val/test patient membership as egfr_roadmap
+
+model:
+  backbone: deeppatho_mma_scratch
+  num_classes: 1
+
+augment: true
+max_patches_per_slide: 300   # same as egfr_roadmap
+
+batch_size: 32
+lr: 1.0e-4
+weight_decay: 0.0    # matches the D experiment's known-stable setting, not the paper's reported 0.85
+max_epochs: 40
+early_stopping_patience: 8
+
+num_workers: 4
+torch_threads: 2
+seed: 20240924
+
+output_dir: runs/egfr_scratch/mma_from_scratch

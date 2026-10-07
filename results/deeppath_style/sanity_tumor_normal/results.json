@@ -1,0 +1,85 @@
+{
+  "history": [
+    {
+      "step": 1000,
+      "val_tile_auc": 0.7401482417905448,
+      "val_tile_acc": 0.6619821402430098
+    },
+    {
+      "step": 2000,
+      "val_tile_auc": 0.8141982345661553,
+      "val_tile_acc": 0.6622749231444883
+    },
+    {
+      "step": 3000,
+      "val_tile_auc": 0.8439235793726624,
+      "val_tile_acc": 0.7424974381496121
+    },
+    {
+      "step": 4000,
+      "val_tile_auc": 0.853362665887889,
+      "val_tile_acc": 0.6646171863563168
+    },
+    {
+      "step": 5000,
+      "val_tile_auc": 0.8824156825591739,
+      "val_tile_acc": 0.6750109793588055
+    },
+    {
+      "step": 6000,
+      "val_tile_auc": 0.9076100224703426,
+      "val_tile_acc": 0.7587468891816718
+    }
+  ],
+  "test_tile_auc": 0.8824969933171048,
+  "test_tile_at_0.5": {
+    "n": 18527,
+    "n_positive": 12900,
+    "precision": 0.7511544981586485,
+    "recall": 0.9961240310077519,
+    "f1": 0.8564668244076382,
+    "roc_auc": 0.8824969933171048,
+    "pr_auc": 0.9327046189736554,
+    "confusion_matrix": [
+      [
+        1370,
+        4257
+      ],
+      [
+        50,
+        12850
+      ]
+    ],
+    "threshold": 0.5
+  },
+  "test_slide_auc": 0.9671682626538987,
+  "test_slide_at_0.5": {
+    "n": 120,
+    "n_positive": 86,
+    "precision": 0.7610619469026548,
+    "recall": 1.0,
+    "f1": 0.864321608040201,
+    "roc_auc": 0.9671682626538987,
+    "pr_auc": 0.9865817266137078,
+    "confusion_matrix": [
+      [
+        7,
+        27
+      ],
+      [
+        0,
+        86
+      ]
+    ],
+    "threshold": 0.5
+  },
+  "n_test_slides": 120,
+  "config": {
+    "config": "configs/deeppath_style/stageA_dx.yaml",
+    "tumor_cap": 150,
+    "normal_cap": 300,
+    "max_steps": 6000,
+    "eval_every": 1000,
+    "out_dir": "runs/deeppath_style/sanity_tumor_normal"
+  }
+}

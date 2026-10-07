@@ -1,0 +1,38 @@
+# EGFR roadmap experiment: Phikon-v2 frozen backbone + MMA, fresh start
+# (does not reuse the TP53/6-gene training runs or their conclusions --
+# only reuses already-downloaded public TCGA slides and already-fetched
+# EGFR labels, since those are just public data, not prior model results).
+
+gene: EGFR
+patch_coords: data/processed/patch_coords_tumor_only.csv   # same tumor-filtered tiling as before (roadmap step 2's
+                                                             # "조직 손상 슬라이드 제거" substitute -- see project notes:
+                                                             # we don't have an artifact-QC step, tumor filtering is
+                                                             # the closest thing we've actually built)
+labels: data/raw/mutation_labels.csv
+
+train_frac: 0.80    # roadmap explicitly specifies 8:1:1, not Coudray's 7:1.5:1.5
+val_frac: 0.10
+split_seed: 42
+
+model:
+  backbone: phikon_v2
+  freeze_backbone: true
+  num_classes: 1
+
+augment: true
+max_patches_per_slide: 300   # between the diagnostic runs' 60 (too small for a real run) and
+                              # production's 600 (unnecessarily slow for a first pass with a frozen,
+                              # already-strong backbone)
+
+batch_size: 32
+lr: 1.0e-4              # only MMA+head are trainable (8.5M params), so this trains like a
+                          # normal from-scratch small network, not a delicate full-model fine-tune
+weight_decay: 1.0e-4
+max_epochs: 40
+early_stopping_patience: 8
+
+num_workers: 4
+torch_threads: 2
+seed: 20240924
+
+output_dir: runs/egfr_roadmap/phikon_mma

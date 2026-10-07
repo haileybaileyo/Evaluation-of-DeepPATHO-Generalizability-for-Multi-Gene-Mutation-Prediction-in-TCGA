@@ -1,0 +1,319 @@
+{
+  "best": {
+    "val_loss": 0.4370209574699402,
+    "step": 10000
+  },
+  "config": {
+    "tiles_dir": "data/processed/deeppath_tiles/dx_20x_512",
+    "tile_index": "tile_index.csv",
+    "labels_10gene": "data/raw/mutation_labels_10gene.csv",
+    "split_coords": "data/processed/patch_coords_tumor_only.csv",
+    "split_labels": "data/raw/mutation_labels.csv",
+    "train_frac": 0.7,
+    "val_frac": 0.15,
+    "split_seed": 42,
+    "image_size": 299,
+    "batch_size": 32,
+    "max_steps": 60000,
+    "eval_every": 5000,
+    "ckpt_every": 2000,
+    "patience_evals": 6,
+    "val_tiles_per_slide": 150,
+    "lr": 0.1,
+    "lr_decay": 0.16,
+    "epochs_per_decay": 30,
+    "rms_decay": 0.9,
+    "momentum": 0.9,
+    "rms_eps": 1.0,
+    "weight_decay": 4e-05,
+    "label_smoothing": 0.1,
+    "aux_weight": 0.4,
+    "ema_decay": 0.9999,
+    "bn_momentum": 0.01,
+    "num_workers": 8,
+    "seed": 20240924,
+    "output_dir": "runs/deeppath_style/stageA_dx"
+  },
+  "smoke": false,
+  "genes": [
+    "TP53",
+    "LRP1B",
+    "KRAS",
+    "KEAP1",
+    "FAT4",
+    "STK11",
+    "EGFR",
+    "FAT1",
+    "NF1",
+    "SETBP1"
+  ],
+  "val": {
+    "TP53": {
+      "n_slides": 76,
+      "n_pos_slides": 37,
+      "slide_auc_mean_prob": 0.6652806652806653,
+      "slide_auc_ci95": [
+        0.5364564384095635,
+        0.7951503473454692
+      ],
+      "slide_auc_frac_tiles": 0.6715176715176715,
+      "tile_auc": 0.6055708666913919
+    },
+    "LRP1B": {
+      "n_slides": 76,
+      "n_pos_slides": 18,
+      "slide_auc_mean_prob": 0.6245210727969349,
+      "slide_auc_ci95": [
+        0.46781436011904765,
+        0.7786674538596192
+      ],
+      "slide_auc_frac_tiles": 0.5727969348659004,
+      "tile_auc": 0.5755410755724508
+    },
+    "KRAS": {
+      "n_slides": 76,
+      "n_pos_slides": 23,
+      "slide_auc_mean_prob": 0.6078753076292043,
+      "slide_auc_ci95": [
+        0.46919886091741875,
+        0.74359375
+      ],
+      "slide_auc_frac_tiles": 0.5,
+      "tile_auc": 0.5828920715826531
+    },
+    "KEAP1": {
+      "n_slides": 76,
+      "n_pos_slides": 9,
+      "slide_auc_mean_prob": 0.6583747927031509,
+      "slide_auc_ci95": [
+        0.5038707828047264,
+        0.8059913589015152
+      ],
+      "slide_auc_frac_tiles": 0.5,
+      "tile_auc": 0.6160960526923531
+    },
+    "FAT4": {
+      "n_slides": 76,
+      "n_pos_slides": 9,
+      "slide_auc_mean_prob": 0.572139303482587,
+      "slide_auc_ci95": [
+        0.33631851604278074,
+        0.8190683229813664
+      ],
+      "slide_auc_frac_tiles": 0.5,
+      "tile_auc": 0.5759028236481181
+    },
+    "STK11": {
+      "n_slides": 76,
+      "n_pos_slides": 10,
+      "slide_auc_mean_prob": 0.5606060606060606,
+      "slide_auc_ci95": [
+        0.4257806581439394,
+        0.6954807692307692
+      ],
+      "slide_auc_frac_tiles": 0.5,
+      "tile_auc": 0.5318841178642276
+    },
+    "EGFR": {
+      "n_slides": 76,
+      "n_pos_slides": 9,
+      "slide_auc_mean_prob": 0.3001658374792703,
+      "slide_auc_ci95": [
+        0.12954713789986294,
+        0.48877795124899254
+      ],
+      "slide_auc_frac_tiles": 0.5,
+      "tile_auc": 0.332387540410641
+    },
+    "FAT1": {
+      "n_slides": 76,
+      "n_pos_slides": 6,
+      "slide_auc_mean_prob": 0.4571428571428571,
+      "slide_auc_ci95": [
+        0.13882433489827856,
+        0.7469382702464785
+      ],
+      "slide_auc_frac_tiles": 0.5,
+      "tile_auc": 0.5059470238927312
+    },
+    "NF1": {
+      "n_slides": 76,
+      "n_pos_slides": 9,
+      "slide_auc_mean_prob": 0.7396351575456053,
+      "slide_auc_ci95": [
+        0.5899816176470588,
+        0.8803440656565656
+      ],
+      "slide_auc_frac_tiles": 0.5,
+      "tile_auc": 0.6733650895678097
+    },
+    "SETBP1": {
+      "n_slides": 76,
+      "n_pos_slides": 9,
+      "slide_auc_mean_prob": 0.38971807628524047,
+      "slide_auc_ci95": [
+        0.16436299951785363,
+        0.6501552795031055
+      ],
+      "slide_auc_frac_tiles": 0.5,
+      "tile_auc": 0.43234711299055617
+    }
+  },
+  "test": {
+    "TP53": {
+      "n_slides": 86,
+      "n_pos_slides": 40,
+      "slide_auc_mean_prob": 0.6847826086956521,
+      "slide_auc_ci95": [
+        0.5663853337387587,
+        0.7933352097062153
+      ],
+      "slide_auc_frac_tiles": 0.7,
+      "tile_auc": 0.587693273941967
+    },
+    "LRP1B": {
+      "n_slides": 86,
+      "n_pos_slides": 40,
+      "slide_auc_mean_prob": 0.5331521739130435,
+      "slide_auc_ci95": [
+        0.4015826380849733,
+        0.663951536643026
+      ],
+      "slide_auc_frac_tiles": 0.4584239130434783,
+      "tile_auc": 0.5148559565028792
+    },
+    "KRAS": {
+      "n_slides": 86,
+      "n_pos_slides": 24,
+      "slide_auc_mean_prob": 0.6189516129032258,
+      "slide_auc_ci95": [
+        0.4913427214963947,
+        0.7392641129032258
+      ],
+      "slide_auc_frac_tiles": 0.5,
+      "tile_auc": 0.5790145166769208
+    },
+    "KEAP1": {
+      "n_slides": 86,
+      "n_pos_slides": 22,
+      "slide_auc_mean_prob": 0.6484375,
+      "slide_auc_ci95": [
+        0.4989475500345065,
+        0.7942040808105223
+      ],
+      "slide_auc_frac_tiles": 0.5,
+      "tile_auc": 0.6068370340420988
+    },
+    "FAT4": {
+      "n_slides": 86,
+      "n_pos_slides": 15,
+      "slide_auc_mean_prob": 0.568075117370892,
+      "slide_auc_ci95": [
+        0.4141036617492097,
+        0.7309370172311349
+      ],
+      "slide_auc_frac_tiles": 0.5,
+      "tile_auc": 0.5324660420801782
+    },
+    "STK11": {
+      "n_slides": 86,
+      "n_pos_slides": 6,
+      "slide_auc_mean_prob": 0.7645833333333333,
+      "slide_auc_ci95": [
+        0.5833333333333334,
+        0.9178825056322852
+      ],
+      "slide_auc_frac_tiles": 0.5,
+      "tile_auc": 0.6200371816097632
+    },
+    "EGFR": {
+      "n_slides": 86,
+      "n_pos_slides": 11,
+      "slide_auc_mean_prob": 0.509090909090909,
+      "slide_auc_ci95": [
+        0.35096153846153844,
+        0.6606076744892533
+      ],
+      "slide_auc_frac_tiles": 0.5,
+      "tile_auc": 0.5133611859074849
+    },
+    "FAT1": {
+      "n_slides": 86,
+      "n_pos_slides": 7,
+      "slide_auc_mean_prob": 0.44665461121157324,
+      "slide_auc_ci95": [
+        0.2422660488245931,
+        0.6708372890295359
+      ],
+      "slide_auc_frac_tiles": 0.5,
+      "tile_auc": 0.4876153117965325
+    },
+    "NF1": {
+      "n_slides": 86,
+      "n_pos_slides": 11,
+      "slide_auc_mean_prob": 0.44606060606060605,
+      "slide_auc_ci95": [
+        0.29813155200655206,
+        0.6040109824887576
+      ],
+      "slide_auc_frac_tiles": 0.5,
+      "tile_auc": 0.45762582715738265
+    },
+    "SETBP1": {
+      "n_slides": 86,
+      "n_pos_slides": 12,
+      "slide_auc_mean_prob": 0.36373873873873874,
+      "slide_auc_ci95": [
+        0.20630208333333333,
+        0.5381611545756283
+      ],
+      "slide_auc_frac_tiles": 0.5,
+      "tile_auc": 0.3788978577954886
+    }
+  },
+  "EGFR_test_slide_protocol": {
+    "threshold_fit_on_val": 0.0,
+    "at_val_threshold": {
+      "n": 86,
+      "n_positive": 11,
+      "precision": 0.12790697674418605,
+      "recall": 1.0,
+      "f1": 0.2268041237113402,
+      "roc_auc": 0.509090909090909,
+      "pr_auc": 0.13872192505116737,
+      "confusion_matrix": [
+        [
+          0,
+          75
+        ],
+        [
+          0,
+          11
+        ]
+      ],
+      "threshold": 0.0,
+      "predicted_positive_ratio": 1.0
+    },
+    "at_0.5": {
+      "n": 86,
+      "n_positive": 11,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "roc_auc": 0.509090909090909,
+      "pr_auc": 0.13872192505116737,
+      "confusion_matrix": [
+        [
+          75,
+          0
+        ],
+        [
+          11,
+          0
+        ]
+      ],
+      "threshold": 0.5,
+      "predicted_positive_ratio": 0.0
+    }
+  }
+}

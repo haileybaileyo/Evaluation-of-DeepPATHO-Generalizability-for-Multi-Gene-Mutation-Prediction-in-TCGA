@@ -1,0 +1,44 @@
+{
+  "gene": "TP53",
+  "git_commit": "d96bc1a862cf4f139bdcefbeb904afa88ebfe347",
+  "config": {
+    "gene": "TP53",
+    "patch_coords": "data/processed/patch_coords_tumor_only.csv",
+    "labels": "data/raw/mutation_labels.csv",
+    "train_frac": 0.7,
+    "val_frac": 0.15,
+    "split_seed": 42,
+    "augment": true,
+    "max_patches_per_slide": 60,
+    "batch_size": 32,
+    "lr": 0.0001,
+    "weight_decay": 0.0,
+    "max_epochs": 20,
+    "early_stopping_patience": 6,
+    "checkpoint_selection_metric": "val_loss",
+    "num_workers": 4,
+    "torch_threads": 2,
+    "seed": 20240923,
+    "output_dir": "runs/diagnostics/mma_vs_baseline_tp53"
+  },
+  "results": [
+    {
+      "name": "mma",
+      "n_params": 1882945,
+      "n_epochs_run": 10,
+      "best_metric_value": 0.7269069462300775,
+      "best_val_auc_seen": 0.5564024390243902,
+      "final_train_auc": 0.8939168055190155,
+      "elapsed_seconds": 2783.434646844864
+    },
+    {
+      "name": "single_mag_20x",
+      "n_params": 765537,
+      "n_epochs_run": 8,
+      "best_metric_value": 0.7382747720101637,
+      "best_val_auc_seen": 0.4771341463414634,
+      "final_train_auc": 0.7761700137390747,
+      "elapsed_seconds": 2225.5346920490265
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "gene": "TP53",
+  "git_commit": "d96bc1a862cf4f139bdcefbeb904afa88ebfe347",
+  "config": {
+    "gene": "TP53",
+    "patch_coords": "data/processed/patch_coords_tumor_only.csv",
+    "labels": "data/raw/mutation_labels.csv",
+    "train_frac": 0.7,
+    "val_frac": 0.15,
+    "split_seed": 42,
+    "augment": true,
+    "tumor_filtered": true,
+    "max_patches_per_slide": 60,
+    "batch_size": 32,
+    "lr": 0.0001,
+    "weight_decay": 0.0,
+    "max_epochs": 20,
+    "early_stopping_patience": 6,
+    "checkpoint_selection_metric": "val_loss",
+    "num_workers": 4,
+    "torch_threads": 2,
+    "seed": 20240923,
+    "output_dir": "runs/diagnostics/fixed_validation_tp53"
+  },
+  "n_epochs_run": 10,
+  "checkpoint_selection_metric": "val_loss",
+  "best_metric_value": 0.7334046333492873
+}

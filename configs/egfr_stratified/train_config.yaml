@@ -1,0 +1,40 @@
+# EGFR baseline (Experiment A), from-scratch twin-Inception + MMA
+# (DeepPATHOClassifier), with a PATIENT-LEVEL STRATIFIED split so the
+# positive ratio stays close to the overall ~12.4% across train/val/test
+# (see egfr_stratified_train.py docstring). Same tumor-filtered patch
+# source, same lr/weight_decay (known-stable, from diagnostics/
+# fixed_validation.yaml's D experiment) and same patch cap as
+# egfr_scratch/egfr_roadmap, so all three are directly comparable.
+#
+# v2: pos_weight (auto-computed from the train split) + val-fit threshold.
+# v1 (fixed 0.5 threshold, no pos_weight) collapsed to all-negative
+# predictions on test -- archived at
+# runs/egfr_stratified/mma_from_scratch_no_posweight/test_result.json.
+# output_dir changed so v1's results aren't overwritten.
+
+gene: EGFR
+patch_coords: data/processed/patch_coords_tumor_only.csv
+labels: data/raw/mutation_labels.csv
+
+train_frac: 0.70    # matches the experiment plan's Train/Val/Test spec, not egfr_scratch's 8:1:1
+val_frac: 0.15
+split_seed: 42
+
+model:
+  backbone: deeppatho_mma_scratch
+  num_classes: 1
+
+augment: true
+max_patches_per_slide: 300
+
+batch_size: 32
+lr: 1.0e-4
+weight_decay: 0.0
+max_epochs: 40
+early_stopping_patience: 8
+
+num_workers: 4
+torch_threads: 2
+seed: 20240924
+
+output_dir: runs/egfr_stratified/mma_from_scratch_posweight

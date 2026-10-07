@@ -32,15 +32,26 @@ import requests
 GDC_API = "https://api.gdc.cancer.gov"
 
 
-def query_slides(project: str, case_ids: list[str] | None = None, page_size: int = 2000) -> list[dict]:
+def query_slides(
+    project: str,
+    case_ids: list[str] | None = None,
+    page_size: int = 2000,
+    experimental_strategies: list[str] | None = None,
+    sample_types: list[str] | None = None,
+) -> list[dict]:
     filters = {
         "op": "and",
         "content": [
             {"op": "in", "content": {"field": "cases.project.project_id", "value": [project]}},
             {"op": "in", "content": {"field": "data_type", "value": ["Slide Image"]}},
-            {"op": "in", "content": {"field": "experimental_strategy", "value": ["Diagnostic Slide"]}},
+            {"op": "in", "content": {"field": "experimental_strategy",
+                                      "value": experimental_strategies or ["Diagnostic Slide"]}},
         ],
     }
+    if sample_types:
+        filters["content"].append(
+            {"op": "in", "content": {"field": "cases.samples.sample_type", "value": sample_types}}
+        )
     if case_ids:
         filters["content"].append(
             {"op": "in", "content": {"field": "cases.submitter_id", "value": case_ids}}
@@ -86,6 +97,7 @@ def flatten(hits: list[dict]) -> pd.DataFrame:
     rows = []
     for h in hits:
         case = h["cases"][0]
+        sample_types = [s.get("sample_type") for s in case.get("samples", [])]
         rows.append(
             {
                 "file_id": h["file_id"],
@@ -94,6 +106,7 @@ def flatten(hits: list[dict]) -> pd.DataFrame:
                 "case_id": case["submitter_id"],
                 "gdc_case_uuid": case["case_id"],
                 "experimental_strategy": h.get("experimental_strategy"),
+                "sample_type": sample_types[0] if sample_types else None,
             }
         )
     return pd.DataFrame(rows)
@@ -106,6 +119,10 @@ def main():
     ap.add_argument("--all-cases", action="store_true")
     ap.add_argument("--project", default="TCGA-LUAD")
     ap.add_argument("--out", default="data/raw/gdc_manifest.csv")
+    ap.add_argument("--experimental-strategies", default="Diagnostic Slide",
+                     help="comma-separated, e.g. 'Diagnostic Slide,Tissue Slide'")
+    ap.add_argument("--sample-types", default=None,
+                     help="comma-separated GDC sample_type filter, e.g. 'Solid Tissue Normal'")
     args = ap.parse_args()
 
     case_ids = None
@@ -114,7 +131,9 @@ def main():
         case_ids = sorted(labels["case_id"].unique().tolist())
         print(f"Restricting to {len(case_ids)} cases from {args.labels}")
 
-    hits = query_slides(args.project, case_ids)
+    strategies = [s.strip() for s in args.experimental_strategies.split(",")]
+    sample_types = [s.strip() for s in args.sample_types.split(",")] if args.sample_types else None
+    hits = query_slides(args.project, case_ids, experimental_strategies=strategies, sample_types=sample_types)
     df = flatten(hits)
 
     out_path = Path(args.out)
