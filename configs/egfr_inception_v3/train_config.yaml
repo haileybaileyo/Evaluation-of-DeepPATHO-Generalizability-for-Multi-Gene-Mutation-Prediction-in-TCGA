@@ -1,0 +1,41 @@
+# EGFR, plain-Inception baseline (lab-meeting request: "re-run the basic
+# CNN/Inception model first, to confirm the pipeline is sane").
+#
+# torchvision Inception v3 (ImageNet-pretrained, fully fine-tuned), 20x patch
+# ONLY -- no 5x branch, no MMA. Everything else is held identical to
+# configs/egfr_stratified (Experiment A, Inception+MMA from scratch) and
+# configs/egfr_uni (Experiment B), so the only variable is the model:
+#   - same patient-level STRATIFIED split (70/15/15, split_seed 42) -> the same
+#     71 test patients as every other stratified experiment
+#   - same tumor-filtered patches, same 300-patch/slide cap (same seed -> same
+#     sampled patches)
+#   - class imbalance: pos_weight = n_neg / n_pos on the train split
+#     (equivalent in ratio to sklearn's "balanced" class weights)
+#   - decision threshold fit on VALIDATION only (F1-maximizing), then applied
+#     to test; fixed-0.5 numbers are also reported side by side.
+gene: EGFR
+patch_coords: data/processed/patch_coords_tumor_only.csv
+labels: data/raw/mutation_labels.csv
+
+train_frac: 0.70
+val_frac: 0.15
+split_seed: 42
+
+model:
+  backbone: inception_v3_torchvision
+  pretrained: true
+  num_classes: 1
+augment: true
+max_patches_per_slide: 300
+
+batch_size: 32
+lr: 1.0e-4
+weight_decay: 0.0
+max_epochs: 40
+early_stopping_patience: 8
+
+num_workers: 4
+torch_threads: 2
+seed: 20240924
+
+output_dir: runs/egfr_inception_v3/pretrained

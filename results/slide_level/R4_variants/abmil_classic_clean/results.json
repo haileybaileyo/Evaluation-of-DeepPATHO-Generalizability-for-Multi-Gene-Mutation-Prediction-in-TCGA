@@ -1,0 +1,50 @@
+{
+  "config": {
+    "features_dir": "<UNI2H_FEATURES_DIR>",
+    "pooled": "data/processed/uni_v2_luad_slide_pooled.npz",
+    "labels": "data/raw/egfr_variants/classic_clean.csv",
+    "coords": "data/processed/patch_coords_tumor_only.csv",
+    "mode": "cv",
+    "genes": [
+      "EGFR"
+    ],
+    "n_splits": 5,
+    "n_repeats": 3,
+    "ctrl_repeats": 1,
+    "n_perm": 1,
+    "n_seeds": 5,
+    "seed": 42,
+    "epochs": 60,
+    "patience": 10,
+    "lr": 0.0002,
+    "wd": 0.01,
+    "accum": 8,
+    "max_patches": 4000,
+    "out_dir": "runs/slide_level/R4_variants/abmil_classic_clean"
+  },
+  "cv": {
+    "EGFR": {
+      "n_patients": 443,
+      "n_positive": 39,
+      "auc_mean": 0.7501480917322502,
+      "auc_std_over_repeats": 0.022275469679373307,
+      "auc_bootstrap_ci95": [
+        0.6758635873874796,
+        0.8612525037121898
+      ],
+      "pr_auc_mean": 0.33908034044888263,
+      "pr_auc_baseline": 0.08803611738148984,
+      "auc_per_repeat": [
+        0.7656765676567656,
+        0.7661208428535162,
+        0.7186468646864687
+      ]
+    }
+  },
+  "permutation": {
+    "EGFR": [
+      0.4704239654734704
+    ]
+  },
+  "fixed": {}
+}

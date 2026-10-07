@@ -1,0 +1,4 @@
+split,n_patients,n_positive,n_negative,positive_ratio,n_patches
+train,329,42,287,0.1277,110378
+val,71,9,62,0.1268,22451
+test,71,9,62,0.1268,25800

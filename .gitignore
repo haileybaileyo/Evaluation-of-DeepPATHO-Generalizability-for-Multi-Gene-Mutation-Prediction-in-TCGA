@@ -1,9 +1,29 @@
-data/raw/
+# --- large / regenerable data: never commit -------------------------------
+# data/raw holds the downloaded slides (hundreds of GB); only the small label and
+# slide-list tables below are tracked (they are tiny and public TCGA/cBioPortal data).
+data/raw/*
+!data/raw/mutation_labels*.csv
+!data/raw/egfr_*.csv
+!data/raw/egfr_variants/
+!data/raw/gdc_manifest*.csv
 data/processed/
 runs/
 *.svs
+*.pt
+*.pth
+*.ckpt
+
+# --- local-only material ---------------------------------------------------
+# lab-meeting files and the personal learning notes / figures (they contain TCGA slide images)
+reports/
+walkthrough/
+
+# --- python ----------------------------------------------------------------
 __pycache__/
 *.pyc
 .venv/
+*.egg-info/
+
+# --- auto-generated runtime configs ----------------------------------------
 configs/train_config_runtime.yaml
 configs/tumor_classifier_config_runtime.yaml

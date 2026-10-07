@@ -1,0 +1,4 @@
+split,n_patients_total,n_patients_with_slides,n_patients_missing_slides,n_slides_total,n_positive_patients,n_negative_patients,n_positive_slides,n_negative_slides,slides_per_patient_min,slides_per_patient_median,slides_per_patient_max,n_label_conflicts
+train,396,333,63,392,168,165,189,203,1,1.0,10,0
+val,85,72,13,75,39,33,42,33,1,1.0,4,0
+test,85,66,19,67,38,28,39,28,1,1.0,2,0

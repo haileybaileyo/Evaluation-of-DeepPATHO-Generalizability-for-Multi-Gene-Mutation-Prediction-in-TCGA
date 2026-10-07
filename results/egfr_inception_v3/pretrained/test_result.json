@@ -1,0 +1,170 @@
+{
+  "config": {
+    "gene": "EGFR",
+    "patch_coords": "data/processed/patch_coords_tumor_only.csv",
+    "labels": "data/raw/mutation_labels.csv",
+    "train_frac": 0.7,
+    "val_frac": 0.15,
+    "split_seed": 42,
+    "model": {
+      "backbone": "inception_v3_torchvision",
+      "pretrained": true,
+      "num_classes": 1
+    },
+    "augment": true,
+    "max_patches_per_slide": 300,
+    "batch_size": 32,
+    "lr": 0.0001,
+    "weight_decay": 0.0,
+    "max_epochs": 40,
+    "early_stopping_patience": 8,
+    "num_workers": 4,
+    "torch_threads": 2,
+    "seed": 20240924,
+    "output_dir": "runs/egfr_inception_v3/pretrained"
+  },
+  "seed": 20240924,
+  "split_seed": 42,
+  "model": "torchvision Inception v3, 20x only, no MMA (ImageNet-pretrained)",
+  "pos_weight": 5.738995054643141,
+  "n_epochs_run": 9,
+  "best_val_loss": 1.6180320208563213,
+  "split_summary": [
+    {
+      "split": "train",
+      "n_patients": 329,
+      "n_positive": 42,
+      "n_negative": 287,
+      "positive_ratio": 0.1277,
+      "n_patches": 110378
+    },
+    {
+      "split": "val",
+      "n_patients": 71,
+      "n_positive": 9,
+      "n_negative": 62,
+      "positive_ratio": 0.1268,
+      "n_patches": 22451
+    },
+    {
+      "split": "test",
+      "n_patients": 71,
+      "n_positive": 9,
+      "n_negative": 62,
+      "positive_ratio": 0.1268,
+      "n_patches": 25800
+    }
+  ],
+  "patch_threshold": 0.02600771375000477,
+  "slide_threshold": 0.13412186800524956,
+  "test_patch_metrics": {
+    "n": 25800,
+    "n_positive": 3300,
+    "precision": 0.13019175846593228,
+    "recall": 0.9669696969696969,
+    "f1": 0.22948579647608774,
+    "roc_auc": 0.5055384915824915,
+    "pr_auc": 0.1314317420902782,
+    "confusion_matrix": [
+      [
+        1181,
+        21319
+      ],
+      [
+        109,
+        3191
+      ]
+    ],
+    "threshold": 0.02600771375000477
+  },
+  "test_slide_metrics": {
+    "n_positive": 11,
+    "precision": 0.14285714285714285,
+    "recall": 1.0,
+    "f1": 0.25,
+    "roc_auc": 0.5042424242424243,
+    "pr_auc": 0.13663255218759118,
+    "confusion_matrix": [
+      [
+        9,
+        66
+      ],
+      [
+        0,
+        11
+      ]
+    ],
+    "threshold": 0.13412186800524956,
+    "n_slides": 86
+  },
+  "test_patch_metrics_at_0.5": {
+    "n": 25800,
+    "n_positive": 3300,
+    "precision": 0.12161741835147745,
+    "recall": 0.35545454545454547,
+    "f1": 0.18122827346465817,
+    "roc_auc": 0.5055384915824915,
+    "pr_auc": 0.1314317420902782,
+    "confusion_matrix": [
+      [
+        14028,
+        8472
+      ],
+      [
+        2127,
+        1173
+      ]
+    ],
+    "threshold": 0.5
+  },
+  "test_slide_metrics_at_0.5": {
+    "n_positive": 11,
+    "precision": 0.10714285714285714,
+    "recall": 0.2727272727272727,
+    "f1": 0.15384615384615385,
+    "roc_auc": 0.5042424242424243,
+    "pr_auc": 0.13663255218759118,
+    "confusion_matrix": [
+      [
+        50,
+        25
+      ],
+      [
+        8,
+        3
+      ]
+    ],
+    "threshold": 0.5,
+    "n_slides": 86
+  },
+  "prediction_bias": {
+    "test_patch_at_val_threshold": {
+      "threshold": 0.02600771375000477,
+      "n": 25800,
+      "n_pred_positive": 24510,
+      "pred_pos_rate": 0.95,
+      "true_pos_rate": 0.12790697674418605
+    },
+    "test_patch_at_0.5": {
+      "threshold": 0.5,
+      "n": 25800,
+      "n_pred_positive": 9645,
+      "pred_pos_rate": 0.37383720930232556,
+      "true_pos_rate": 0.12790697674418605
+    },
+    "test_slide_at_val_threshold": {
+      "threshold": 0.13412186800524956,
+      "n": 86,
+      "n_pred_positive": 77,
+      "pred_pos_rate": 0.8953488372093024,
+      "true_pos_rate": 0.12790697674418605
+    },
+    "test_slide_at_0.5": {
+      "threshold": 0.5,
+      "n": 86,
+      "n_pred_positive": 28,
+      "pred_pos_rate": 0.32558139534883723,
+      "true_pos_rate": 0.12790697674418605
+    }
+  }
+}

@@ -1,0 +1,5 @@
+# The 10 most frequently mutated LUAD genes used by Coudray et al. 2018 (Table 4):
+# TP53 50%, LRP1B 34%, KRAS 28%, KEAP1 18%, FAT4 16%, STK11 15%, EGFR 12%, FAT1 11%, NF1 11%, SETBP1 11%.
+# Used for the DeepPATH-style multi-output (sigmoid) classifier.
+study_id: luad_tcga_pan_can_atlas_2018
+phase1_genes: [TP53, LRP1B, KRAS, KEAP1, FAT4, STK11, EGFR, FAT1, NF1, SETBP1]

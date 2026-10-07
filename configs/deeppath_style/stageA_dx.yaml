@@ -1,0 +1,40 @@
+# Stage A: DeepPATH-style multi-output (10 genes, sigmoid) Inception v3 trained from
+# scratch on 512px/20x tiles of the TCGA-LUAD DX slides already on this server.
+# Stage B (later) repeats this on frozen "Tissue Slide" images (the slide type Coudray used).
+# See src/deeppatho_gen/deeppath_style/train_multilabel.py for every deviation from the original.
+
+tiles_dir: data/processed/deeppath_tiles/dx_20x_512
+tile_index: tile_index.csv
+labels_10gene: data/raw/mutation_labels_10gene.csv
+
+# same patient split as every other experiment in this project
+split_coords: data/processed/patch_coords_tumor_only.csv
+split_labels: data/raw/mutation_labels.csv
+train_frac: 0.70
+val_frac: 0.15
+split_seed: 42
+
+image_size: 299
+batch_size: 32
+max_steps: 60000          # original: 500000 (best-validation checkpoint is kept either way)
+eval_every: 5000
+ckpt_every: 2000          # resume point between evaluations (a crash loses at most ~2000 steps)
+patience_evals: 6         # stop after 6 evaluations without a new best validation BCE (0 = never)
+val_tiles_per_slide: 150  # validation subsample per slide for the periodic evaluation
+
+# optimiser / regularisation, as in DeepPATH's inception_train.py
+lr: 0.1
+lr_decay: 0.16
+epochs_per_decay: 30
+rms_decay: 0.9
+momentum: 0.9
+rms_eps: 1.0
+weight_decay: 0.00004
+label_smoothing: 0.1
+aux_weight: 0.4
+ema_decay: 0.9999
+bn_momentum: 0.01         # original 0.0003 (decay 0.9997); larger here: short runs, and 0.001 gave saturated eval outputs early on
+
+num_workers: 8
+seed: 20240924
+output_dir: runs/deeppath_style/stageA_dx

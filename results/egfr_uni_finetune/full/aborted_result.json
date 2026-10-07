@@ -1,0 +1,66 @@
+{
+  "status": "ABORTED",
+  "reason": "val AUC collapsed to chance level (0.48-0.54) and val_loss diverged monotonically (1.29 -> 2.65) over 5 epochs with no recovery trend, despite backbone_lr=1e-6 (100x smaller than head lr). Consistent with catastrophic forgetting of UNI pretrained features when fine-tuning 303M params on a small (110k patch / 42 positive patient) dataset. Decision: abandon fine-tuning, adopt frozen UNI (Experiment B) as the final UNI result.",
+  "config": null,
+  "history_before_abort": [
+    {
+      "epoch": 0,
+      "train_loss": 0.19923898672843915,
+      "val_loss": 1.286551606335924,
+      "val_patch_auc": 0.5029575040673068,
+      "val_slide_auc": 0.5107794361525704,
+      "val_slide_f1": 0.0,
+      "elapsed_hours": 1.0571278370089001
+    },
+    {
+      "epoch": 1,
+      "train_loss": 0.06785723901557034,
+      "val_loss": 1.4570764897940442,
+      "val_patch_auc": 0.501859887351416,
+      "val_slide_auc": 0.5306799336650083,
+      "val_slide_f1": 0.0,
+      "elapsed_hours": 2.1185873583952586
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.03846667012593225,
+      "val_loss": 1.8680333474762418,
+      "val_patch_auc": 0.4898971311343023,
+      "val_slide_auc": 0.4792703150912106,
+      "val_slide_f1": 0.0,
+      "elapsed_hours": 3.178545983698633
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.025401090590165928,
+      "val_loss": 2.2525247241346498,
+      "val_patch_auc": 0.5048691817590456,
+      "val_slide_auc": 0.49751243781094523,
+      "val_slide_f1": 0.0,
+      "elapsed_hours": 4.239365926848517
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.019215011033879556,
+      "val_loss": 2.648340962882926,
+      "val_patch_auc": 0.5419442470941799,
+      "val_slide_auc": 0.5240464344941956,
+      "val_slide_f1": 0.0,
+      "elapsed_hours": 5.2993570824464165
+    }
+  ],
+  "comparison_reference": {
+    "baseline_from_scratch": {
+      "patch_f1": 0.23,
+      "patch_auc": 0.477,
+      "slide_f1": 0.095,
+      "slide_auc": 0.467
+    },
+    "uni_frozen": {
+      "patch_f1": 0.23,
+      "patch_auc": 0.588,
+      "slide_f1": 0.25,
+      "slide_auc": 0.615
+    }
+  }
+}

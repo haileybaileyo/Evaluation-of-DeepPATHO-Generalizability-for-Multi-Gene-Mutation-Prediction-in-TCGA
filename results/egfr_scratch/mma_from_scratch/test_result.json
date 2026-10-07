@@ -1,0 +1,28 @@
+{
+  "auc": 0.5486111111111112,
+  "balanced_acc": 0.5,
+  "confusion_matrix": [
+    [
+      48,
+      0
+    ],
+    [
+      3,
+      0
+    ]
+  ],
+  "n_slides": 51,
+  "auc_max_pooling": 0.2847222222222222,
+  "balanced_acc_max_pooling": 0.4375,
+  "confusion_matrix_max_pooling": [
+    [
+      42,
+      6
+    ],
+    [
+      3,
+      0
+    ]
+  ],
+  "fdr05_threshold": 0.8418368369340896
+}
